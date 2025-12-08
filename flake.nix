@@ -1,8 +1,6 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-parts.url = "github:hercules-ci/flake-parts";
-    systems.url = "github:nix-systems/default";
 
     typst = {
       url = "github:typst/typst";
@@ -22,23 +20,47 @@
 
   outputs =
     inputs@{
-      flake-parts,
       crane,
       nixpkgs,
       fenix,
       rust-manifest,
-      typst,
       self,
       ...
     }:
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = import inputs.systems;
-
-      imports = [
-        inputs.flake-parts.flakeModules.easyOverlay
+    let
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "x86_64-linux"
       ];
-
+      # Return { name = { system = value; }; ... } (standard flake schema).
       perSystem =
+        inputsFunc:
+        with builtins;
+        let
+          systemInputs = listToAttrs (
+            map (system: rec {
+              name = system;
+              value = inputsFunc rec {
+                inherit system;
+                pkgs = import nixpkgs { inherit system; };
+                lib = pkgs.lib;
+                self' = value;
+              };
+            }) systems
+          );
+        in
+        foldl' (
+          acc: system:
+          acc
+          // (mapAttrs (
+            name: value: (acc.${name} or { }) // { ${system} = value; }
+          ) systemInputs.${system})
+        ) { } systems;
+    in
+    perSystem
+      (
         {
           self',
           pkgs,
@@ -177,6 +199,6 @@
               '')
             ];
           };
-        };
-    };
+        }
+      );
 }
