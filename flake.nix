@@ -5,7 +5,7 @@
     systems.url = "github:nix-systems/default";
 
     typst = {
-      url = "github:typst/typst";
+      url = "github:typst/typst/0.14";
       flake = false;
     };
 
