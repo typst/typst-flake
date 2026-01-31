@@ -61,6 +61,13 @@
 
           rust-toolchain = fenix.packages.${system}.fromManifestFile rust-manifest;
 
+          rustflags =
+            if pkgs.stdenv.hostPlatform.rust.rustcTargetSpec == "x86_64-unknown-linux-gnu" then
+              # Upstream defaults to lld on x86_64-unknown-linux-gnu, we need to use the system linker
+              "-Clinker-features=-lld -Clink-self-contained=-linker"
+            else
+              null;
+
           # Crane-based Nix flake configuration.
           # Based on https://github.com/ipetkov/crane/blob/master/examples/trunk-workspace/flake.nix
           craneLib = (crane.mkLib pkgs).overrideToolchain rust-toolchain.defaultToolchain;
@@ -98,12 +105,7 @@
             ];
 
             env = {
-              RUSTFLAGS =
-                if pkgs.stdenv.hostPlatform.rust.rustcTargetSpec == "x86_64-unknown-linux-gnu" then
-                  # Upstream defaults to lld on x86_64-unknown-linux-gnu, we need to use the system linker
-                  "-Clinker-features=-lld -Clink-self-contained=-linker"
-                else
-                  null;
+              RUSTFLAGS = rustflags;
             };
           };
 
@@ -178,6 +180,7 @@
             ];
 
             RUST_SRC_PATH = "${rust-toolchain.rust-src}/lib/rustlib/src/rust/library";
+            RUSTFLAGS = rustflags;
 
             packages = [
               # A script for quickly running tests.
