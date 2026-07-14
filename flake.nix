@@ -11,7 +11,7 @@
     };
 
     typst = {
-      url = "github:typst/typst/0.14";
+      url = "github:typst/typst?ref=v0.15.0";
       flake = false;
     };
 
@@ -21,7 +21,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     rust-manifest = {
-      url = "https://static.rust-lang.org/dist/channel-rust-1.95.0.toml";
+      url = "https://static.rust-lang.org/dist/channel-rust-1.97.0.toml";
       flake = false;
     };
   };
